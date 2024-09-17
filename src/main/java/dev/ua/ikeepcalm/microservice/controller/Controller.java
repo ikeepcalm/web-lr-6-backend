@@ -41,7 +41,6 @@ public class Controller {
 
     @PostMapping("/api/saveMultiple")
     public ResponseEntity<String> saveMultiple(@RequestBody String content) {
-        JsonMapper mapper = new JsonMapper();
         try {
             List<ToastWrapper> toasts = parseToasts(content);
             if (toasts != null) {
