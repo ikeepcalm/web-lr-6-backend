@@ -1,5 +1,6 @@
 package dev.ua.ikeepcalm.microservice.controller;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import dev.ua.ikeepcalm.microservice.database.Service;
 import dev.ua.ikeepcalm.microservice.database.Toast;
@@ -7,6 +8,8 @@ import dev.ua.ikeepcalm.microservice.database.ToastWrapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @Slf4j
 @RestController
@@ -40,9 +43,11 @@ public class Controller {
     public ResponseEntity<String> saveMultiple(@RequestBody String content) {
         JsonMapper mapper = new JsonMapper();
         try {
-            ToastWrapper[] toasts = mapper.readValue(content, ToastWrapper[].class);
-            for (ToastWrapper toast : toasts) {
-                service.save(new Toast(toast));
+            List<ToastWrapper> toasts = parseToasts(content);
+            if (toasts != null) {
+                for (ToastWrapper toast : toasts) {
+                    service.save(new Toast(toast));
+                }
             }
         } catch (Exception e) {
             log.error("Invalid toasts format: {}", e.getMessage());
@@ -67,6 +72,16 @@ public class Controller {
         JsonMapper mapper = new JsonMapper();
         try {
             return mapper.readValue(content, ToastWrapper.class);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private List<ToastWrapper> parseToasts(String content) {
+        JsonMapper mapper = new JsonMapper();
+        try {
+            return mapper.readValue(content, new TypeReference<List<ToastWrapper>>() {
+            });
         } catch (Exception e) {
             return null;
         }

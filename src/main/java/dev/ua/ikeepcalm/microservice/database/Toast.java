@@ -34,6 +34,6 @@ public class Toast {
     }
 
     public Toast() {
-        
+
     }
 }
