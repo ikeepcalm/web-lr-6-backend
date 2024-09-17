@@ -3,9 +3,12 @@ package dev.ua.ikeepcalm.microservice.controller;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import dev.ua.ikeepcalm.microservice.database.Service;
 import dev.ua.ikeepcalm.microservice.database.Toast;
+import dev.ua.ikeepcalm.microservice.database.ToastWrapper;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+@Slf4j
 @RestController
 public class Controller {
 
@@ -22,13 +25,13 @@ public class Controller {
 
     @PostMapping("/api/saveSingle")
     public ResponseEntity<String> saveSingle(@RequestBody String content) {
-        Toast toast = parseToast(content);
+        ToastWrapper toast = parseToast(content);
 
         if (toast == null) {
             return ResponseEntity.badRequest().body("Invalid toast format!");
         }
 
-        service.save(toast);
+        service.save(new Toast(toast));
 
         return ResponseEntity.ok("Single toast saved!");
     }
@@ -37,11 +40,12 @@ public class Controller {
     public ResponseEntity<String> saveMultiple(@RequestBody String content) {
         JsonMapper mapper = new JsonMapper();
         try {
-            Toast[] toasts = mapper.readValue(content, Toast[].class);
-            for (Toast toast : toasts) {
-                service.save(toast);
+            ToastWrapper[] toasts = mapper.readValue(content, ToastWrapper[].class);
+            for (ToastWrapper toast : toasts) {
+                service.save(new Toast(toast));
             }
         } catch (Exception e) {
+            log.error("Invalid toasts format: {}", e.getMessage());
             return ResponseEntity.badRequest().body("Invalid toasts format!");
         }
 
@@ -59,10 +63,10 @@ public class Controller {
         return ResponseEntity.ok(service.findAll());
     }
 
-    private Toast parseToast(String content) {
+    private ToastWrapper parseToast(String content) {
         JsonMapper mapper = new JsonMapper();
         try {
-            return mapper.readValue(content, Toast.class);
+            return mapper.readValue(content, ToastWrapper.class);
         } catch (Exception e) {
             return null;
         }
